@@ -159,6 +159,32 @@ plot(mtcars$wt, mtcars$mpg,
 Create a scatterplot of two variables of your choice (but not `mpg` vs. `wt`). Feel free to try a `ggplot2` version if you have some R experience!
 
 ```{r}
+library(ggplot2)
+
+ggplot(mtcars, aes(x = wt, y = hp)) +
+  geom_point() +
+  labs(
+    title = "Heavier cars tend to have higher horsepower",
+    x = "Weight (1000 lbs)",
+    y = "Horsepower"
+  )
+
+ggplot(mtcars, aes(x = hp)) +
+  geom_histogram(binwidth = 20, fill = "yellow", color = "black") +
+  labs(
+    title = "Distribution of Horsepower",
+    x = "Horsepower",
+    y = "Count"
+  )
+
+ggplot(mtcars, aes(x = cut_number(wt, 4), y = hp)) +
+  geom_boxplot(fill = "red", color = "black") +
+  labs(
+    title = "Horsepower by Weight Quartile",
+    x = "Weight Quartile (1000 lbs)",
+    y = "Horsepower"
+  )
+
 
 ```
 
