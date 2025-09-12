@@ -150,6 +150,8 @@ We are using *Base R* here, and it works fine! Going forward, we'll use a packag
 plot(mtcars$wt, mtcars$mpg,
      xlab = "Weight (1000 lbs)", ylab = "MPG",
      main = "Heavier cars tend to have lower MPG")
+
+
 ```
 
 ------------------------------------------------------------------------
@@ -185,6 +187,7 @@ ggplot(mtcars, aes(x = cut_number(wt, 4), y = hp)) +
     y = "Horsepower"
   )
 
+summary(mtcars$qsec)
 
 ```
 
