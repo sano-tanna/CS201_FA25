@@ -143,16 +143,24 @@ In the code chunk below, create a new dataframe called `average_flipper_length` 
 Bonus: If you assign this to a new object name, you can then use `view(object_name)` to see your results as a table.
 
 ```{r, message=FALSE}
-average_flipper_length <- penguins_data %>% 
-  group_by(species) %>% 
-  summarise(average_flipper_length = mean(mass,flipper_length_mm, na.rm = TRUE))
+average_flipper_length <- penguins_data %>%
+  group_by(species) %>%
+  summarise(average_flipper_length = mean(flipper_length_mm, na.rm = TRUE))
 
 ```
 
 In the code chunk below, plot `average_flipper_length` using `ggplot()` and `geom_bar`. Customize the graph with colors, a theme, and labels, etc., as you wish.
 
 ```{r, message=FALSE}
-
+ggplot(average_flipper_length, 
+       aes(x = species, y = average_flipper_length, fill = species)) +
+  geom_bar(stat = "identity", width = 0.3) +
+  theme_bw() +
+  coord_flip() + 
+  theme(legend.position = "none") +
+  labs(title = "Average Flipper Length by Species",
+       x = "Species",
+       y = "Average Flipper Length (mm)") 
 
 ```
 
@@ -163,7 +171,11 @@ Create a boxplot of body mass by species & make the plot interactive
 -   Hints: `geom_boxplot()`, `ggplotly()`
 
 ```{r, message=FALSE}
+bp <- ggplot(penguins_data, aes(x = species, y = body_mass_g)) + geom_boxplot()
+ggplotly(bp)
 
+ggplot(data = penguins_data, aes(x = species, y = body_mass_g, fill = species)) + geom_boxplot()
+ggplotly(ex2)
 
 ```
 
@@ -174,6 +186,7 @@ How many penguins live on each Island?
 -   Hint: There are a few different ways, but you can use `summary()` to start.
 
 ```{r, message=FALSE}
+summary(as.factor(penguins_data$island))
 
 
 ```
@@ -183,6 +196,19 @@ How many penguins live on each Island?
 Create a dataframe that has the average culmen depth for each species. Then, make a bar plot of the new dataframe with species on the x-axis and average culmen depth on the y-axis
 
 ```{r, message=FALSE}
+culmen_depth_mm <- penguins_data %>%
+  group_by(species) %>%
+  summarise(average_culmen_depth = mean(culmen_depth_mm, na.rm = TRUE))
+
+ggplot(culmen_depth_mm,
+       aes(x = species, y = average_culmen_depth, fill = species)) +
+  geom_bar(stat = "identity", width = 0.3) +
+  labs(title = "Average Culmen Depth by Species",
+       x = "Species",
+       y = "Average Culmen Depth (mm)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
 
 
 ```
