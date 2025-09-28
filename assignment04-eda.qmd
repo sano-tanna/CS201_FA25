@@ -1,0 +1,161 @@
+---
+title: "Assignment 4: Exploratory Data Analysis"
+author: "Amber Camp"
+date: "`r Sys.Date()`"
+format: html
+editor: visual
+---
+
+## Overview
+
+Due: **Sunday, 9/28 11:59pm**
+
+In this assignment, you will practice Exploratory Data Analysis (EDA) by making plots from a **Kaggle dataset of your choice**.
+
+You will submit **at least 4 different plot types**, with short written interpretations for each.
+
+Part 1 is worth a total of 1 point, and Part 2 is worth 4 points (1 point for each plot & interpretation).
+
+## Part 1: Get Your Data
+
+1.  Go to [Kaggle Datasets](https://www.kaggle.com/datasets), create an account, and choose a dataset that interests you. Ensure your data has:
+    1.  At least 4 variables
+    2.  At least one categorical and one continuous variable
+    3.  I recommend data that contains at least 50-100 observations
+    4.  Tip: Open the CSV on Kaggle first and skim the columns to check that it meets these requirements
+2.  Download the dataset as a CSV file.
+3.  Place the CSV in your class R project data folder.
+4.  Read it into R with `read_csv()`.
+
+```{r, message=FALSE}
+library(tidyverse)
+mydata <- read_csv("data/realistic_ocean_climate_dataset.csv")
+library(here)
+library(janitor)
+```
+
+### Describe your data
+
+Data author: **ATHARVA SOUNDANKAR**
+
+Link: <https://www.kaggle.com/datasets/atharvasoundankar/shifting-seas-ocean-climate-and-marine-life-dataset/data>
+
+Description: This data will be going over the significant changes that the ocean is going through taking Ocean Climate data throughout the world ranging from 2015-2023.
+
+### Preview your data
+
+Use some of the strategies you've learned in this class or picked up elsewhere to summarize and quickly explore your data.
+
+```{r}
+summary(mydata)
+
+view(mydata)
+
+```
+
+### Summary stats
+
+Before you make plots, you must also:
+
+-   Show basic summaries of your dataset, including:
+
+    -   `count()` for categorical variables (to see category frequencies)
+
+    -   `mean()`, `median()`, `sd()`, `min()`, `max()` for at least one numeric variable
+
+```{r}
+mydata %>%
+  summarise(
+    mean = mean(`pH Level`, na.rm = TRUE),
+    median = median(`pH Level`, na.rm = TRUE),
+    sd = sd(`pH Level`, na.rm = TRUE),
+    min = min(`pH Level`, na.rm = TRUE),
+    max = max(`pH Level`, na.rm = TRUE)
+  )
+```
+
+Write 2–3 sentences here: What do the category counts tell you? What does the numeric summary show about spread, center, or outliers? Categorical counts tell you how much is in one group, while numeric summary can show you the concentration of that specific numeric value or category.
+
+## Part 2:
+
+Create **at least 4 plots**, each of a different type. At least one of your four plots must use different variables than the others.
+
+Each plot should have:
+
+-   A title and labeled axes
+
+-   A short interpretation (2-3 sentences) underneath
+
+Use the EDA Part 3 notes as your reference. Since this is an EDA assignment, your plots can be plain, but consider adding colors, themes, or interactivity for interpretability and visual appeal if you know how.
+
+### Plot 1
+
+```{r}
+ggplot(mydata, aes(x = `Bleaching Severity`, y = `SST (°C)`, fill = `Bleaching Severity`)) +
+  geom_boxplot() +
+  labs(
+    title = "Sea Surface Temperature (SST) by Bleaching Severity",
+    x = "Bleaching Severity Level",
+    y = "SST (°C)"
+  ) +
+  theme_minimal()
+```
+
+Interpretation: SST follows the trend that SST values are higher for observations with High bleaching compared to other categories. Also, all the groups are overlapping around 28-29 C, but the Orange (High) has more of its Boxplot stretching further into the hotter temperatures than the rest. Also, the outliners on both High/Low just show unusually warm or cool events which is normal for ocean activity/temperature.
+
+### Plot 2
+
+```{r}
+library(ggplot2)
+
+ggplot(mydata, aes(x = `pH Level`)) +
+  geom_histogram(binwidth = 0.02, boundary = 0, closed = "left") +
+  labs(
+    title = "Distribution of Seawater pH",
+    x = "pH",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+
+```
+
+Interpretation: The histogram shows that seawater pH globally are highly concentrated at around 8.0 - 8.1 pH. This data set shows there's a little bit of variation within the pH values of the worlds oceans but it is getting more acidic in recent decades due to thinks like Ocean Acidification and Greenhouse gases.
+
+### Plot 3
+
+```{r}
+ggplot(mydata, aes(x = as.Date(Date), y = `SST (°C)`)) +
+  geom_line(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Sea Surface Temperature (SST) Over Time",
+    x = "Date",
+    y = "SST (°C)"
+  ) +
+  theme_minimal()
+
+```
+
+Interpretation: This is a good graph, it shows the variation of SST (Sea Surface Temperature) and how it fluctuates over time. You can see that there was a slight rise from the beginning to around 2019, but there was a slight downshift in temperature at around 2020. That's probably because not that much human activity was happening during 2020 (Covid-19) But SST is relatively "stable" but it could worsen due to the change of policy on Greenhouse gases.
+
+### Plot 4
+
+```{r}
+ggplot(mydata, aes(x = `SST (°C)`, y = `Species Observed`, color = `Marine Heatwave`)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Species Observed vs. SST, by Marine Heatwave Status",
+    x = "SST (°C)",
+    y = "Species Observed"
+  ) +
+  theme_minimal()
+
+```
+
+Interpretation: This shows that less species are observed as temperature increases. When there's no heatwave (Red) more species are observed, but their number still goes down as SST increases. During heatwaves (Blue), fewer species are seen overall, and their observations fall faster compared to no marine heatwave.
+
+## Push to GitHub to Submit!
+
+Assignment is due Sunday 9/28 at 11:59 pm.
