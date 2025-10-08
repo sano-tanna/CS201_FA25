@@ -1,0 +1,145 @@
+---
+title: "Assignment 5: Substance Abuse Treatment Mapping"
+subtitle: "STUDENT NAME"
+author: "Amber Camp"
+date: "`r Sys.Date()`"
+format: html
+editor: visual
+---
+
+## Overview
+
+Due: **Tuesday, 10/7 11:59pm**
+
+In this assignment, you will apply analytic and mapping skills on the TEDS-D dataset from SAMHSA.
+
+Refer to the following files for reference, though some of what is asked of you in this assignment will require logic beyond what was discussed here:
+
+-   week06-treatment-mapping-part1.qmd
+
+-   week06-treatment-mapping-part2.qmd
+
+Total time estimate: Two hours
+
+## Load Packages and Data
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+library(janitor) 
+library(arrow) # lets us read/write parquet and feather files
+library(sf) # "simple features" for spatial data
+library(urbnmapr) # access to US state/country shapefiles for mapping
+library(naniar) # tools for exploring and visualizing missing data
+library(ggiraph) # makes ggplot charts interactive
+options(scipen = 99) # turns off scientific notation
+
+```
+
+```{r}
+teds_d <- read_parquet(here("data/teds_d_clean.parquet"))
+```
+
+## Question 1
+
+Make an interactive map with `ggiraph` showing the percentage of completed treatments that end with no use at discharge. I am looking for a single interactive map as the final product.
+
+Hint: Break this question down into bite-sized steps, like we did in Part 2. The `freq1_d` column contains information about use at discharge. Check your denominator carefully — should it be *all cases* or *completed cases*?
+
+```{r}
+map <- left_join(
+  get_urbn_map("states", sf = TRUE),
+  teds_d |>
+    mutate(across(c(reason, freq1_d), ~ str_squish(str_to_lower(.x)))) |>
+    filter(str_detect(reason, "completed")) |>
+    group_by(stfips) |>
+    summarise(
+      pct_no_use = 100 * mean(str_detect(freq1_d, "^(no|none)\\b|no\\s*(substance)?\\s*use|abstin"), na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(state_fips = str_pad(as.character(stfips), 2, pad = "0")),
+  by = "state_fips"
+)
+
+girafe(ggobj =
+  ggplot(map) +
+    geom_sf_interactive(aes(geometry = geometry, fill = pct_no_use,
+                            tooltip = paste0(state_name, ": ",
+                                             ifelse(is.na(pct_no_use),"No data", round(pct_no_use,1)), "%")),
+                        color = "white", size = 0.25) +
+    scale_fill_viridis_c(na.value = "grey90") +
+    labs(title = "Completed Treatments Ending with No Use", fill = "% No Use") +
+    theme_minimal()
+)
+
+```
+
+## Question 2
+
+Treatment outcomes can vary depending on the type of service patients receive and the length of stay in treatment.
+
+-   Investigate how the percentage of treatments completed and the percentage of treatments that end with no use at discharge differ when you look at service type and length of stay.
+
+-   Create at least three different visualizations to help answer this question.
+
+-   At least one visualization should focus on service type and at least one should focus on length of stay. A third visualization should compare the two.
+
+-   After making your visualizations, write a short summary (3-ish sentences) that explains the main patterns you observe. Please use full, grammatical sentences.
+
+```{r}
+service_summary <- teds_d %>%
+  group_by(services_d) %>%
+  summarise(
+    total = n(),
+    pct_completed = 100 * mean(reason == "Treatment completed", na.rm = TRUE),
+    pct_no_use = 100 * mean(freq1_d == "No use", na.rm = TRUE)
+  )
+
+# get completion and no-use percentages by length of stay
+los_summary <- teds_d %>%
+  group_by(los) %>%
+  summarise(
+    total = n(),
+    pct_completed = 100 * mean(reason == "Treatment completed", na.rm = TRUE),
+    pct_no_use = 100 * mean(freq1_d == "No use", na.rm = TRUE)
+  )
+
+# combined summary by both
+combined_summary <- teds_d %>%
+  group_by(services_d, los) %>%
+  summarise(
+    pct_completed = 100 * mean(reason == "Treatment completed", na.rm = TRUE),
+    pct_no_use = 100 * mean(freq1_d == "No use", na.rm = TRUE)
+  )
+
+ggplot(service_summary, aes(x = reorder(services_d, pct_completed), y = pct_completed)) +
+  geom_col(fill = "#4C9BE8", width = 0.7) +
+  coord_flip() +
+  labs(
+    title = "Percent of Treatments Completed by Service Type",
+    x = "Service Type",
+    y = "% Completed"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10)
+  )
+
+ggplot(combined_summary, aes(x = los, y = pct_completed, fill = services_d)) +
+  geom_col(position = "dodge") +
+  labs(title = "Completion % by Service Type and Length of Stay",
+       x = "Length of Stay", y = "% Completed", fill = "Service Type") +
+  theme_minimal()
+
+view(service_summary)
+view(los_summary)
+view(combined_summary)
+```
+
+Summary: People in inpatient and residential programs were more likely to finish their treatment. Outpatient programs had the lowest completion rates, meaning people who go home each day may have a harder time staying in treatment. Overall, programs that give more support seem to help people complete their treatment more often.
+
+## Push to GitHub to Submit!
+
+Assignment is due Tuesday 10/7 at 11:59 pm.
