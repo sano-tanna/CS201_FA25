@@ -72,13 +72,12 @@ library(tidyverse)
 
 ```{r, message=FALSE}
 library(janitor)
-
 ```
 
 #### Read in penguins data
 
 ```{r, message=FALSE}
-penguins <- read_csv(here("data/penguins_lter.csv"))
+penguins <- read_csv("data/penguins_lter.csv")
 
 penguins <- penguins %>% 
   clean_names()
